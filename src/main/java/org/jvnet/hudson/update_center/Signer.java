@@ -52,6 +52,9 @@ public class Signer {
     @Option(name="-root-certificate",usage="Additional root certificates")
     public List<File> rootCA = new ArrayList<File>();
 
+    @Option(name = "-insecure", usage = "Skip certificate validation")
+    public boolean insecure;
+
     // debug option. spits out the canonical update center file used to compute the signature
     @Option(name="-canonical")
     public File canonical = null;
@@ -185,7 +188,8 @@ public class Signer {
         List<X509Certificate> certs = new ArrayList<X509Certificate>();
         for (File f : certificates) {
             X509Certificate c = loadCertificate(cf, f);
-            c.checkValidity(new Date(System.currentTimeMillis()+ TimeUnit.DAYS.toMillis(30)));
+            if (!insecure)
+                c.checkValidity(new Date(System.currentTimeMillis() + TimeUnit.DAYS.toMillis(30)));
             certs.add(c);
         }
 
@@ -196,7 +200,8 @@ public class Signer {
         }
 
         try {
-            CertificateUtil.validatePath(certs,rootCAs);
+            if (!insecure)
+                CertificateUtil.validatePath(certs, rootCAs);
         } catch (GeneralSecurityException e) {
             e.printStackTrace();
         }
@@ -207,7 +212,8 @@ public class Signer {
         FileInputStream in = new FileInputStream(f);
         try {
             X509Certificate c = (X509Certificate) cf.generateCertificate(in);
-            c.checkValidity();
+            if (!insecure)
+                c.checkValidity();
             return c;
         } finally {
             in.close();
