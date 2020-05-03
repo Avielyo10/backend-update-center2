@@ -56,8 +56,11 @@ import java.util.TreeMap;
  * @author Kohsuke Kawaguchi
  */
 public class Main {
-    @Option(name="-o",usage="json file")
-    public File output = new File("output.json");
+    @Option(name="-o",usage="JSONP file")
+    public File jsonp = new File("output.json");
+
+    @Option(name="-json",usage="JSON file")
+    public File json = new File("actual.json");
 
     @Option(name="-r",usage="release history JSON file")
     public File releaseHistory = new File("release-history.json");
@@ -153,7 +156,8 @@ public class Main {
     }
 
     private void prepareStandardDirectoryLayout() {
-        output = new File(www,"update-center.json");
+        json = new File(www,"update-center.actual.json");
+        jsonp = new File(www,"update-center.json");
         htaccess = new File(www,"latest/.htaccess");
         indexHtml = new File(www,"index.html");
         releaseHistory = new File(www,"release-history.json");
@@ -167,8 +171,9 @@ public class Main {
         PrintWriter latestRedirect = createHtaccessWriter();
 
         JSONObject ucRoot = buildUpdateCenterJson(repo, latestRedirect);
-        writeToFile(updateCenterPostCallJson(ucRoot), output);
-        writeToFile(updateCenterPostMessageHtml(ucRoot), new File(output.getPath()+".html"));
+        writeToFile(updateCenterPostCallJson(ucRoot), jsonp);
+        writeToFile(prettyPrintJson(ucRoot), json);
+        writeToFile(updateCenterPostMessageHtml(ucRoot), new File(jsonp.getPath()+".html"));
 
         JSONObject rhRoot = buildFullReleaseHistory(repo);
         String rh = prettyPrintJson(rhRoot);
